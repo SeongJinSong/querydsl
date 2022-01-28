@@ -66,4 +66,24 @@ public class QuerydslBasicTest {
                 .fetchOne();
         Assertions.assertThat(findMember.getUsername()).isEqualTo("member1");
     }
+
+    @Test
+    public void search(){
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1")
+                        .and(member.age.eq(10)))
+                .fetchOne();
+        Assertions.assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
+    @Test
+    public void searchAndParam(){
+        Member findMember = queryFactory
+                .selectFrom(member)
+                .where(member.username.eq("member1")
+                        ,member.age.eq(10)
+                        ,null) // null은 무시되기 때문에 동적쿼리를 깔끔하게 짤 수 있다.
+                .fetchOne();
+        Assertions.assertThat(findMember.getUsername()).isEqualTo("member1");
+    }
 }
