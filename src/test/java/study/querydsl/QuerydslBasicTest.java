@@ -14,6 +14,8 @@ import study.querydsl.entity.Team;
 import javax.persistence.EntityManager;
 import java.util.List;
 
+import static study.querydsl.entity.QMember.*;
+
 @SpringBootTest
 @Transactional
 public class QuerydslBasicTest {
@@ -52,12 +54,15 @@ public class QuerydslBasicTest {
 
     @Test
     public void startQuerydsl(){
-        QMember m = new QMember("m");//어떤 QMember인지 구분하는 M
-
+        /**
+         * 같은 테이블을 self 조인해야할때만 선언해서 사용하자!
+         * - QMember m = new QMember("m");
+         *   QMember인지 구분하는 "m"
+         */
         Member findMember = queryFactory
-                .select(m)
-                .from(m)
-                .where(m.username.eq("member1")) //파라미터 바인딩 처리
+                .select(member)
+                .from(member)
+                .where(member.username.eq("member1")) //파라미터 바인딩 처리
                 .fetchOne();
         Assertions.assertThat(findMember.getUsername()).isEqualTo("member1");
     }
