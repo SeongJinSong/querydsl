@@ -1,6 +1,8 @@
 package study.querydsl.repository;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -92,5 +94,69 @@ public class MemberJpaRepository {
                 .leftJoin(member.team, team)
                 .where(builder)
                 .fetch();
+    }
+
+    public List<MemberTeamDto> search(MemberSearchCondition condition){
+        return queryFactory
+                .select(new QMemberTeamDto(
+                        member.id.as("memberId"),
+                        member.username,
+                        member.age,
+                        team.id.as("teamId"),
+                        team.name.as("teamName")
+                ))
+                .from(member)
+                .leftJoin(member.team, team)
+                .where(
+                        usernameEq(condition.getUsername()),
+                        teamNameEq(condition.getTeamName()),
+                        ageGoe(condition.getAgeGoe()),
+                        ageLoe(condition.getAgeLoe())
+                )
+                .fetch();
+    }
+
+    private BooleanExpression usernameEq(String username) {
+        return hasText(username) ? member.username.eq(username) : null;
+    }
+
+    private BooleanExpression teamNameEq(String teamName) {
+        return hasText(teamName) ? team.name.eq(teamName) : null;
+    }
+
+    private BooleanExpression ageGoe(Integer ageGoe) {
+        return ageGoe != null ? member.age.goe(ageGoe) : null;
+    }
+
+    private BooleanExpression ageLoe(Integer ageLoe) {
+        return ageLoe != null ? member.age.loe(ageLoe) : null;
+    }
+
+    /**
+     *  Where절 파라미터 사용하는 경우!
+     *  - 메서드를 재사용할 수 있다.
+     */
+    public List<Member> searchMember(MemberSearchCondition condition){
+        return queryFactory
+                .select(member)
+                .from(member)
+                .leftJoin(member.team, team)
+                .where(
+                        usernameEq(condition.getUsername()),
+                        teamNameEq(condition.getTeamName()),
+                        ageGoe(condition.getAgeGoe()),
+                        ageLoe(condition.getAgeLoe())
+                )
+                .fetch();
+    }
+
+    /**
+     * 함수를 조립해서 만들 수 있다.
+     * 서비스를 나갈때는 항상 똑같은 조건들이 있다.
+     * - 예) 서비스에서는 delete 아니고, 날짜가 끝나면 안되고 등 필수조건이 있는데
+     *     이걸 composition으로 묶어서 isValid()로 만들 수 있다.
+     */
+    private BooleanExpression ageBetween(int ageLoe, int ageGoe){
+        return ageGoe(ageGoe).and(ageLoe(ageLoe));
     }
 }
