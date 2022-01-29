@@ -5,7 +5,9 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
@@ -645,6 +647,9 @@ public class QuerydslBasicTest {
         }
     }
 
+    /**
+     * 동적 쿼리 - BooleanBuilder 사용
+     */
     @Test
     public void dynamicQuery_BooleanBuilder(){
         String usernameParam = "member1";
@@ -654,7 +659,6 @@ public class QuerydslBasicTest {
         List<Member> result = searchMember1(usernameParam, ageParam);
         assertThat(result.size()).isEqualTo(1);
     }
-
     private List<Member> searchMember1(String usernameCond, Integer ageCond) {
         BooleanBuilder builder = new BooleanBuilder();
         /*
@@ -672,5 +676,71 @@ public class QuerydslBasicTest {
                 .where(builder)
                 .where(builder)
                 .fetch();
+    }
+
+    /**
+     * 동적 쿼리 - Where 다중 파라미터 사용
+     */
+    @Test
+    public void dynamicQuery_WhereParam(){
+        String usernameParam = "member1";
+        Integer ageParam = 10;
+
+        List<Member> result = searchMember2(usernameParam, ageParam);
+        assertThat(result.size()).isEqualTo(1);
+    }
+
+    /**
+     * 쿼리 부분만 보더라고 어떻게 동작하는지 파악할 수 있다.
+     */
+    private List<Member> searchMember2(String usernameCond, Integer ageCond) {
+        return queryFactory
+                .selectFrom(member)
+                .where(usernameEq(usernameCond), ageEq(ageCond))
+                .fetch();
+    }
+
+    private BooleanExpression usernameEq(String usernameCond) {
+        if(usernameCond == null) return null;
+        return usernameCond != null ? member.username.eq(usernameCond) : null;
+    }
+
+    private BooleanExpression ageEq(Integer ageCond) {
+        return ageCond != null ? member.age.eq(ageCond) : null;
+    }
+
+    /**
+     * 조합해서 사용할 수 있다.
+     * - Predicate 말고 BooleanExpression을 사용해야함!
+     *
+     * 예)
+     * 광고 상태 : isValid, 날짜 IN : isServiceable
+     *
+     * private BooleanExpression isServiceable(String usernameCond, Integer ageCond){
+     *     return isValid(usernameCond).and(DateBetween(ageCond));
+     * }
+     *
+     * where 조건에 isServiceable()을 넣기만 하면 된다!, 재사용도 된다.
+     */
+
+
+    @Test
+    public void dynamicQuery_WhereParam2(){
+        String usernameParam = "member1";
+        Integer ageParam = 10;
+
+        List<Member> result = searchMember3(usernameParam, ageParam);
+        assertThat(result.size()).isEqualTo(1);
+    }
+
+    private List<Member> searchMember3(String usernameCond, Integer ageCond) {
+        return queryFactory
+                .selectFrom(member)
+                .where(allEq(usernameCond, ageCond))
+                .fetch();
+    }
+
+    private BooleanExpression allEq(String usernameCond, Integer ageCond){
+        return usernameEq(usernameCond).and(ageEq(ageCond));
     }
 }
