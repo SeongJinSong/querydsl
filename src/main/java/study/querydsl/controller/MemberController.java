@@ -32,4 +32,9 @@ public class MemberController {
     public Page<MemberTeamDto> searchMemberV3(MemberSearchCondition condition, Pageable pageable){
         return memberRepository.searchPageComplex(condition, pageable);
     }
+
+    @GetMapping("/v4/members")
+    public Page<MemberTeamDto> searchMemberV4(MemberSearchCondition condition, Pageable pageable){
+        return memberRepository.searchPageSimle_repositorySupport(condition, pageable);
+    }
 }

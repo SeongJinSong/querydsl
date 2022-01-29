@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface MemberRepositoryCustom {
     List<MemberTeamDto> search(MemberSearchCondition condition);
+    List<MemberTeamDto> search_repositorySupport(MemberSearchCondition condition);
     Page<MemberTeamDto> searchPageSimle(MemberSearchCondition condition, Pageable pageable);
     Page<MemberTeamDto> searchPageComplex(MemberSearchCondition condition, Pageable pageable);
+    Page<MemberTeamDto> searchPageSimle_repositorySupport(MemberSearchCondition condition, Pageable pageable);
 }
