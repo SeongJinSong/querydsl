@@ -2,7 +2,9 @@ package study.querydsl;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -450,6 +452,39 @@ public class QuerydslBasicTest {
             Integer age = tuple.get(member.age);
             Integer rank = tuple.get(rankPath);
             System.out.println("username = " + username + " age = " + age + " rank = " + rank);
+        }
+    }
+
+    /**
+     * 상수, 문자 더하기
+     *  - JPQL에서는 쿼리로 상수가 안나간다. 결과에만 조합해서 준다.
+     */
+    @Test
+    public void constant(){
+        List<Tuple> result = queryFactory
+                .select(member.username, Expressions.constant("A"))
+                .from(member)
+                .fetch();
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+    }
+
+    /**
+     * 문자가 아닌 다른 타입들은 concat이 안된다.
+     *  -> stringVaule()를 사용해야하낟.
+     *
+     * h2 db에서 char로 가져올때 한자리수만 가져오는 버그가 있다. member1_10 -> member1_1
+     */
+    @Test
+    public void concat(){
+        List<String> result = queryFactory
+                .select(member.username.concat("_").concat(member.age.stringValue()))
+                .from(member)
+                .where(member.username.eq("member1"))
+                .fetch();
+        for (String s : result) {
+            System.out.println("s = " + s);
         }
     }
 }
